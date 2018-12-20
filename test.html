@@ -220,7 +220,7 @@ function monitorOrderStatus(orderId, type, timeout) {
         if (isIOS) {
             //这个是ios操作系统
             // alert(ios);
-            window.webkit.messageHandlers.Scan.postMessage();
+            window.webkit.messageHandlers.scanOnlyBike.postMessage('99');
         }
 
     }
