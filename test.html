@@ -6,16 +6,12 @@
         function showToast() {
 <!--                share('分享的标题','分享的内容','图片地址');-->
 
-            window.webkit.messageHandlers.scanCode.postMessage('你好');
+            window.webkit.messageHandlers.Scan.postMessage();
 
         }
 
         function showAlert(message){
             alert(message);
-        }
-
-        function thirdClick(){
-            window.webkit.messageHandlers.AddNavigationBar.postMessage('add navigationBar');
         }
 
     </script>
