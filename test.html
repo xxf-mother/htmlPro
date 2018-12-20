@@ -1,34 +1,325 @@
-<html>
-<header>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
 
-        function showToast() {
-<!--                share('分享的标题','分享的内容','图片地址');-->
+<!DOCTYPE html>
+<html lang="zh" id="top" class="no-js">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Magento Commerce</title>
+<meta name="description" content="Default Description" />
+<meta name="keywords" content="Magento, Varien, E-commerce" />
+<meta name="robots" content="INDEX,FOLLOW" />
+<link rel="icon" href="http://biketest.donghulvdao.com:8080/skin/frontend/base/default/favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="http://biketest.donghulvdao.com:8080/skin/frontend/base/default/favicon.ico" type="image/x-icon" />
+<!-- 
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+ -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="stylesheet" type="text/css" href="http://biketest.donghulvdao.com:8080/media/css/2f7e127273c2bb8bb4fcd9d84e09ab37.css" media="all" />
+<script type="text/javascript" src="http://biketest.donghulvdao.com:8080/media/js/1d82a5d86cf4592e104db4cc69f8ca41.js"></script>
+<!-- <script type="text/javascript" src="http://118.178.191.237/dhldweb/js/greenway-jsbridge.js"></script> -->
+<!-- 罗少东 2017-02-27 10:18:20 -->
+<script type="text/javascript" src="http://biketest.donghulvdao.com:8080/js/lib/greenway-jsbridge.js"></script>
 
-            window.webkit.messageHandlers.scanCode.postMessage('11');
 
-        }
-        function thirdClick() {
+<script type="text/javascript">
 
-            window.webkit.messageHandlers.scanOnlyBike.postMessage('77');
+function getPosition(callback) {
+	
+	var position;
+	var latitude;
+	var longitude;
+	
+			
+		GWJSBridge.setup(function(bridge) {
+			bridge.callHandler('getCurrentPosition', {}, function(data) {
+				latitude = data.result.latitude;
+				longitude = data.result.longitude;
+				position = {"latitude":latitude, "longitude":longitude};
+				callback(position);
+		 	});
+		});
+	
+		
+// 	    JSBridge.call('bike', 
+// 	    	'getCurrentPosition',
+// 	    	{},
+// 	    	function(data){
+// 	    		//alert(JSON.stringify(data));
+// 	        	latitude = data.result.latitude;
+// 				longitude = data.result.longitude;
+// 				position = {"latitude":latitude, "longitude":longitude};
+// 				callback(position);
+// 	    	}
+// 	    );
 
-        }
+	}
+</script>
 
-        function showAlert(message){
-            alert(message);
-        }
 
-    </script>
+<script type="text/javascript">
+//<![CDATA[
+Mage.Cookies.path     = '/';
+Mage.Cookies.domain   = '.biketest.donghulvdao.com';
+//]]>
+</script>
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+<script type="text/javascript">
+
+/**
+ * 设置当前页面
+ * @param string url 跳转网址
+ */
+function setLocation(url) {
+	window.location.href = url;
+}
+
+/**
+ * 发起登陆申请
+ * @param string url 登陆成功后跳转网址
+ */
+function checkAccessToken(url) {
+
+	GWJSBridge.setup(function(bridge) {
+		bridge.callHandler('requestAccessToken', {'url': url}, function(data) {
+    	var newUrl = data.result.url + 
+    		"?_source=app&_token=" + data.result.token + 
+    		"&_mobile=" + data.result.mobile + 
+    		"&_username=" + data.result.username;
+
+    	setLocation(newUrl);
+	 	});
+	});
+
+}
+
+/**
+ * 发起支付申请
+ * @param string orderId 订单号
+ * @param string type 支付类型（deposit，rental)
+ * 
+ */
+function invokePayment(orderId, type,method) {
+
+	/* 此次最好更换为页内支付 */
+	//setLocation("http://biketest.donghulvdao.com:8080/epayment/alipay/redirect/?order="+orderId+"&type="+type);
+
+
+    jQuery.getJSON("http://biketest.donghulvdao.com:8080/epayment/alipay/generateAppPackage/", 
+    	{ "order": orderId, "type": type },
+    	function(data){
+        	if (data.error) {
+            	alert(data.message);
+        	} else {
+            	GWJSBridge.setup(function(bridge) {
+            		bridge.callHandler('callAlipayH5Payment', 
+                    		data, 
+                    		function(data) {});
+            	});
+        	}
+    	});
+    	
+}
+
+
+/**
+ * 发起支付申请
+ * @param string orderId 订单号
+ * @param string type 支付类型（deposit，rental)
+ */
+function monitorOrderStatus(orderId, type, timeout) {
+	try {
+		timeout = parseInt(timeout);
+		if ( timeout <= 5000) {
+			timeout = 5000;
+		}
+	} catch(e) {
+		timeout = 5000;
+	}
+    setInterval(function(){
+    	jQuery.get("http://biketest.donghulvdao.com:8080/epayment/order/status/", 
+    		{ "order": orderId },
+    		function(data){
+    			if (data != type) {
+    				var url = "http://biketest.donghulvdao.com:8080/rental/order/view/id/"+orderId+"/";
+    				setLocation(url);
+    			}
+    		});
+    }, timeout);
+}
+
+</script>
+
+</head>
+<body class=" rent-store-bicycle">
+                    <div class="content">
+                        <div class="col-main">
+                                <!--<header id="header" class="page-header">
+    <div class="page-header-container">
+
+    </div>
+</header>-->
+<div style="height: 44px;">
+<header class="bar bar-nav">
+    <button onClick="javascript:history.back(-1);" class="btn btn-link btn-nav pull-left">
+        <span class="icon icon-left-nav"></span>
+    </button>
+    <a onclick="logout()" href="http://biketest.donghulvdao.com:8080/customer/account/logout/" class="btn btn-link btn-nav pull-right">
+        <span style="color: #fff" class="icon icon-share orderlist"></span>
+    </a>
+    <h1 class="title">
+    	线上还车(只扫自行车)    </h1>
 </header>
+</div>
+<script type="text/javascript">
+    function logout() {
+        // console.log('logout');
+        android.logout();
+    }
+</script><div class="public-main-container">
+    <div class="absolute-box">
+         <div class="public-box">
+            <div class="info-msg">
+                <div id="fail" class="success-ico" style="display:none;">
+                  <img style="width: 12%;" class="img-responsive" src="http://biketest.donghulvdao.com:8080/skin/frontend/bike/default/images/fail.png" alt="">
+                  <span id="fail-msg" style="color: red"></span>
+                </div>
+                 <button id="bike_code" onclick="Scan()" class="btn btn-block btn-primary">扫自行车二维码</button>
+                 <button onclick="loadData('A1260001','','')">模拟扫自行车</button>
+                <div id="bike" style="display:none">
+                 <p>自行车类别：<span id="type_name"></span></p>
+                 <p>起租租金：<span id="first_unit_price"></span>元/<span id="first_unit"></span>小时</p>
+                <p>续租租金：<span id="unit_price"></span>元/<span id="unit"></span>小时</p>
+                 <p>自行车编号：<span id="series_code"></span></p>
+                <p>取车时间：<span id="take_time"></span></p>
+                <p>还车时间：<span id="return_time"></span></p>
+                <p>租车时间：<span id="total_time_hour"></span>小时<span id="total_time_min"></span>分</p>
+                <p>预计租金：<span id="rent_total"></span></p>
+                </div>
+            </div>
+           <div id="ajaxPost" class="button-box">
+               <button onclick="bicycleConfirm()" class="btn btn-block btn-primary">确认还车</button>
+           </div>
+         </div>
+    </div>
+</div>
+<script type="text/javascript">
+   /* function Scan() {
+        android.Scan();
+    }*/
+    // }
+    function Scan(){
+        var u = navigator.userAgent, app = navigator.appVersion;
+        var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+        var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+        if (isAndroid) {
+            //这个是安卓操作系统
+            // alert(anzuo);
+            android.Scan();
+        }
+        if (isIOS) {
+            //这个是ios操作系统
+            // alert(ios);
+            window.webkit.messageHandlers.Scan.postMessage();
+        }
 
-<body bgcolor="green">
-    <h2> 这里是第二种方式 </h2>
-    <br/>
-    <br/>
-    <button type="button" onclick="showToast()">扫码</button>
-    <button type="button" onclick="thirdClick()">ThirdClick!</button>
+    }
 
-</body>
+
+    function redirect(url) {
+        if(url==''){
+            window.location.reload();
+        }else{
+            window.location.href = url;
+        }
+    }
+    function hide(str){
+        if(str=='fail'){
+            jQuery("#fail").hide();
+        }else if(str=='success'){
+        }
+    }
+</script>
+<script type="text/javascript">
+    function loadData(seriesCode,plate,id) {
+        var url = 'http://biketest.donghulvdao.com:8080/rent/offline/loadData/';
+        var fail = jQuery("#fail");
+        var fail_msg = jQuery("#fail-msg");
+        jQuery.ajax({
+            url: url,
+            data: {seriesCode:seriesCode,plate:plate,id:id},
+            type: 'post',
+            dataType: 'json',
+            async: true,
+            success: function(data){
+                console.log(data);
+                if(data.status=='0'){
+                    if(data.bicycle){
+                       var bike = jQuery("#bike");
+                        jQuery("#type_name").text(data.type.name);
+                        jQuery("#series_code").text(data.bicycle.series_code);
+                        jQuery("#first_unit_price").text(data.type.first_unit_price);
+                        jQuery("#first_unit").text(data.type.first_unit);
+                        jQuery("#unit_price").text(data.type.unit_price);
+                        jQuery("#unit").text(data.type.unit);
+                        jQuery("#take_time").text(data.order.take_time);
+                        jQuery("#return_time").text(data.order.return_time);
+                        jQuery("#total_time_hour").text(data.order.total_time.hour);
+                        jQuery("#total_time_min").text(data.order.total_time.min);
+                        jQuery("#rent_total").text(data.order.rent_total);
+                        bike.show();
+                    }else{
+                        fail_msg.text('自行车不存在');
+                        fail.show();
+                        setTimeout("hide('fail')",2000);
+                    }
+                }else{
+                    fail_msg.text(data.message);
+                    fail.show();
+                    setTimeout("hide('fail')",2000);
+                }
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    function bicycleConfirm() {
+        var url = 'http://biketest.donghulvdao.com:8080/rent/store/bicycleConfirm/';
+        var seriesCode = jQuery("#series_code").text();
+        var stationId = '';
+        var return_worker_id = '';
+        var fail = jQuery("#fail");
+        var fail_msg = jQuery("#fail-msg");
+        if(!seriesCode){
+            fail_msg.text('请先扫自行车');
+            fail.show();
+            setTimeout("hide('fail')",2000);
+            return;
+        }
+        jQuery.ajax({
+            url: url,
+            data: {seriesCode:seriesCode},
+            type: 'post',
+            dataType: 'json',
+            async: true,
+            success: function(data){
+               console.log(data);
+               if(data.status==0){
+                var url = 'http://biketest.donghulvdao.com:8080/rent/store/confirm/';
+                window.location.href = url + 'orderId/' + data.orderId + '/stationId/' + stationId + '/return_worker_id/' + return_worker_id;
+               }else{
+                fail_msg.text(data.message);
+                fail.show();
+                setTimeout("hide('fail')",2000);
+               }
+            }
+        });
+    }
+</script>
+            </div>
+        </div>
+                                
+
+        </body>
 </html>
 
