@@ -6,7 +6,7 @@
         function showToast() {
 <!--                share('分享的标题','分享的内容','图片地址');-->
 
-            window.webkit.messageHandlers.Scan.postMessage('');
+            window.webkit.messageHandlers.scanOnlyBike.postMessage();
 
         }
 
@@ -21,7 +21,7 @@
     <h2> 这里是第二种方式 </h2>
     <br/>
     <br/>
-    <button type="button" onclick="showToast('1')">扫码</button>
+    <button type="button" onclick="showToast()">扫码</button>
     <button type="button" onclick="thirdClick()">ThirdClick!</button>
 
 </body>
